@@ -26,6 +26,7 @@ plot(lifeexpect$Status, lifeexpect$Life.expectancy)
 summary(lm(Life.expectancy ~ . , data = lifeexpect))
 
 #Eli making changes 2 sadasdasdasd
+#example
 ```
 
 
