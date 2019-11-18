@@ -24,6 +24,8 @@ corrgram(lifeexpect)#correlation diagram
 plot(lifeexpect$Year, lifeexpect$Life.expectancy)
 plot(lifeexpect$Status, lifeexpect$Life.expectancy)
 summary(lm(Life.expectancy ~ . , data = lifeexpect))
+
+#example nothing
 ```
 
 
