@@ -29,3 +29,11 @@ summary(lm(Life.expectancy ~ . , data = lifeexpect))
 ```
 
 
+```{r}
+
+
+
+```
+
+
+
