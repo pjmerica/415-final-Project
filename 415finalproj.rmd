@@ -33,10 +33,48 @@ summary(lm(Life.expectancy ~ . , data = lifeexpect))
 
 
 ```{r}
+head(lifeexpect)
+AdultMortalityRate = life$Adult.Mortality/1000
+life$AdultMortalityRate = AdultMortalityRate
 
+infantdeathrate = life$infant.deaths/1000
+life$infantdeathrate = infantdeathrate
+
+HepatitisBRate = life$Hepatitis.B/1000
+life$HepatitisBRate = HepatitisBRate
+
+
+
+plot(lifeexpect$Life.expectancy ~ life$Alcohol, xlab = "Alcohol", ylab = "life expectancy")
+plot(lifeexpect$Life.expectancy ~ life$GDP, xlab = "GDP per capita", ylab = "life expectancy")
+plot(lifeexpect$Life.expectancy ~ life$Schooling, xlab = "Schooling", ylab = "life expectancy")
+plot(lifeexpect$Life.expectancy ~ life$Alcohol, xlab = "Alcohol", ylab = "life expectancy")
+plot(lifeexpect$Life.expectancy ~ life$HepatitisBRate, xlab = "Hepatits Rate", ylab = "life expectancy")
+plot(lifeexpect$Life.expectancy ~ life$Total.expenditure, xlab = "Expenditure", ylab = "life expectancy")
+plot(lifeexpect$Life.expectancy ~ life$Income.composition.of.resources, xlab = "income", ylab = "life expectancy")
+plot(lifeexpect$Life.expectancy ~ life$Diphtheria, xlab = "Diphtheria", ylab = "life expectancy")
+plot(lifeexpect$Life.expectancy ~ life$BMI, xlab = "BMI", ylab = "life expectancy")
 
 
 ```
 
+```{r}
+trainlifeexpect <- lifeexpect[1:floor(0.7*nrow(life)),]
+testlifeexpect <- lifeexpect[-(1:floor(0.7*nrow(life))),]
+Model1 = lm(Life.expectancy ~ Schooling + GDP + Income.composition.of.resources + BMI , data = trainlifeexpect)
+summary(Model1)
 
+train_predict = predict.lm(Model1, trainlifeexpect)
+train_mse_predict = mean((train_predict - trainlifeexpect$Life.expectancy)^2)
+test_predict = predict.lm(Model1, testlifeexpect)
+test_mse_predict = mean((test_predict - testlifeexpect$Life.expectancy)^2)
+
+
+train_mse_predict
+test_mse_predict
+
+newlifeexpect = na.omit(lifeexpect)
+
+
+```
 
