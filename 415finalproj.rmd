@@ -5,76 +5,51 @@ date: "November 17, 2019"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-
+# Libraries
 ```{r}
-library(corrgram)
 
 ```
 
 ```{r}
-lifeexpect = read.csv("Life Expectancy Data.csv", stringsAsFactors = F)
-lifeexpect$Year = as.factor(lifeexpect$Year)
-lifeexpect$Status = as.factor(lifeexpect$Status)
-head(lifeexpect)
-corrgram(lifeexpect)#correlation diagram
-plot(lifeexpect$Year, lifeexpect$Life.expectancy)
-plot(lifeexpect$Status, lifeexpect$Life.expectancy)
-summary(lm(Life.expectancy ~ . , data = lifeexpect))
+life = read.csv("Life Expectancy Data.csv", stringsAsFactors = F)
+newlife = na.omit(lifeexpect)
+newlife = newlife[-c(12,19)]
+newlife$Year = as.factor(newlife$Year)
+newlife$Status = as.factor(newlife$Status)
+str(newlife)
 
-#Eli making changes 2 sadasdasdasd
-#example
-#example3456722
-#Final changes
+mod1 = lm(Life.expectancy ~ . - Country - Year, data = newlife)
+summary(mod1)
 ```
 
 
 ```{r}
-head(lifeexpect)
-AdultMortalityRate = life$Adult.Mortality/1000
-life$AdultMortalityRate = AdultMortalityRate
-
-infantdeathrate = life$infant.deaths/1000
-life$infantdeathrate = infantdeathrate
-
-HepatitisBRate = life$Hepatitis.B/1000
-life$HepatitisBRate = HepatitisBRate
-
-
-
-plot(lifeexpect$Life.expectancy ~ life$Alcohol, xlab = "Alcohol", ylab = "life expectancy")
-plot(lifeexpect$Life.expectancy ~ life$GDP, xlab = "GDP per capita", ylab = "life expectancy")
-plot(lifeexpect$Life.expectancy ~ life$Schooling, xlab = "Schooling", ylab = "life expectancy")
-plot(lifeexpect$Life.expectancy ~ life$Alcohol, xlab = "Alcohol", ylab = "life expectancy")
-plot(lifeexpect$Life.expectancy ~ life$HepatitisBRate, xlab = "Hepatits Rate", ylab = "life expectancy")
-plot(lifeexpect$Life.expectancy ~ life$Total.expenditure, xlab = "Expenditure", ylab = "life expectancy")
-plot(lifeexpect$Life.expectancy ~ life$Income.composition.of.resources, xlab = "income", ylab = "life expectancy")
-plot(lifeexpect$Life.expectancy ~ life$Diphtheria, xlab = "Diphtheria", ylab = "life expectancy")
-plot(lifeexpect$Life.expectancy ~ life$BMI, xlab = "BMI", ylab = "life expectancy")
-
-
+plot(newlife$Year, newlife$Life.expectancy)
+plot(newlife$Status, newlife$Life.expectancy)
+plot(newlife$Life.expectancy ~ newlife$Alcohol, xlab = "Alcohol", ylab = "life expectancy")
+plot(newlife$Life.expectancy ~ newlife$GDP, xlab = "GDP per capita", ylab = "life expectancy")
+plot(newlife$Life.expectancy ~ newlife$Schooling, xlab = "Schooling", ylab = "life expectancy")
+plot(newlife$Life.expectancy ~ newlife$Alcohol, xlab = "Alcohol", ylab = "life expectancy")
+plot(newlife$Life.expectancy ~ newlife$Hepatitis.B, xlab = "Hepatits Rate", ylab = "life expectancy")
+plot(newlife$Life.expectancy ~ newlife$Total.expenditure, xlab = "Expenditure", ylab = "life expectancy")
+plot(newlife$Life.expectancy ~ newlife$Income.composition.of.resources, xlab = "income", ylab = "life expectancy")
+plot(newlife$Life.expectancy ~ newlife$Diphtheria, xlab = "Diphtheria", ylab = "life expectancy")
+plot(newlife$Life.expectancy ~ newlife$BMI, xlab = "BMI", ylab = "life expectancy")
 ```
 
 ```{r}
-trainlifeexpect <- lifeexpect[1:floor(0.7*nrow(life)),]
-testlifeexpect <- lifeexpect[-(1:floor(0.7*nrow(life))),]
-Model1 = lm(Life.expectancy ~ Schooling + GDP + Income.composition.of.resources + BMI , data = trainlifeexpect)
-summary(Model1)
+trainlife<- life[1:floor(0.7*nrow(life)),]
+testlife <- lifeexpect[-(1:floor(0.7*nrow(life))),]
 
-train_predict = predict.lm(Model1, trainlifeexpect)
-train_mse_predict = mean((train_predict - trainlifeexpect$Life.expectancy)^2)
-test_predict = predict.lm(Model1, testlifeexpect)
-test_mse_predict = mean((test_predict - testlifeexpect$Life.expectancy)^2)
+mod2 <- lm()
 
+train_predict = predict.lm(mod2, trainlife)
+train_mse_predict = mean((train_predict - trainlife$Life.expectancy)^2)
+test_predict = predict.lm(mod2, testlife)
+test_mse_predict = mean((test_predict - testlife$Life.expectancy)^2)
 
 train_mse_predict
 test_mse_predict
-
-newlifeexpect = na.omit(lifeexpect)
-
 
 ```
 
