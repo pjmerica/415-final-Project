@@ -12,44 +12,58 @@ output: html_document
 
 ```{r}
 life = read.csv("Life Expectancy Data.csv", stringsAsFactors = F)
+
 newlife = na.omit(lifeexpect)
 newlife = newlife[-c(12,19)]
 newlife$Year = as.factor(newlife$Year)
 newlife$Status = as.factor(newlife$Status)
-str(newlife)
 
-mod1 = lm(Life.expectancy ~ . - Country - Year, data = newlife)
+names(newlife)[names(newlife) == "Life.expectancy"] = "Life_Expectancy"
+names(newlife)[names(newlife) == "Adult.Mortality"] = "Adult_Mortality"
+names(newlife)[names(newlife) == "infant.deaths"] = "Infant_Deaths"
+names(newlife)[names(newlife) == "percentage.expenditure"] = "Percentage_Expenditure"
+names(newlife)[names(newlife) == "Hepatitis.B"] = "HepatitisB"
+names(newlife)[names(newlife) == "Total.expenditure"] = "Total_Expenditure"
+names(newlife)[names(newlife) == "Income.composition.of.resources"] = "Resource_Income"
+```
+
+```{r}
+plot(newlife$Life_Expectancy ~ newlife$Status, xlab = "Status", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Adult_Mortality, xlab = "Adult Mortality", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Infant_Deaths, xlab = "Infant Deaths", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Alcohol, xlab = "Alcohol", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Percentage_Expenditure, xlab = "Percentage Expenditure", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$HepatitisB, xlab = "Hepatitis B", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Measles, xlab = "Measles", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$BMI, xlab = "BMI", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Polio, xlab = "Polio", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Total_Expenditure, xlab = "Total Expenditure", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Diphtheria, xlab = "Diphtheria", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$HIV.AIDS, xlab = "HIV/AIDS", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$GDP, xlab = "GDP", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Population, xlab = "Population", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$thinness.5.9.years, xlab = "Thinness 5-9 years", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Resource_Income, xlab = "Income Composition of Resources", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Schooling, xlab = "Schooling", ylab = "Life Expectancy")
+summary(lm(Life_Expectancy ~ Status, data = newlife))$r.squared
+summary(lm(Life_Expectancy ~ Adult_Mortality, data = newlife))$r.squared
+summary(lm(Life_Expectancy ~ BMI, data = newlife))$r.squared
+summary(lm(Life_Expectancy ~ Polio, data = newlife))$r.squared
+summary(lm(Life_Expectancy ~ Diphtheria, data = newlife))$r.squared
+summary(lm(Life_Expectancy ~ HIV.AIDS, data = newlife))$r.squared
+summary(lm(Life_Expectancy ~ Resource_Income, data = newlife))$r.squared
+summary(lm(Life_Expectancy ~ Schooling, data = newlife))$r.squared
+```
+
+When plotting all the predictors against life expectancy in a scatter plot, life expectancy seems to be most correlated with status of the country, adult mortality, BMI, polio immunization coverage (%), diphtheria,  HIV/AIDS, income composition of resources, and schooling. In most of the scatterplots, there appears to be a lot of outliers. However, this may be due to getting rid of the NA values in the data set in the data cleaning process. When looking at Pearson's r-squared for the relationship between these 8 predictors and life expectancy, the five most correlated features with life expectancy are adult mortality, BMI, HIV/AIDS, income composition of resources, and schooling.
+
+```{r}
+mod1 = lm(Life_Expectancy ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling, data = newlife)
 summary(mod1)
-```
 
-
-```{r}
-plot(newlife$Year, newlife$Life.expectancy)
-plot(newlife$Status, newlife$Life.expectancy)
-plot(newlife$Life.expectancy ~ newlife$Alcohol, xlab = "Alcohol", ylab = "life expectancy")
-plot(newlife$Life.expectancy ~ newlife$GDP, xlab = "GDP per capita", ylab = "life expectancy")
-plot(newlife$Life.expectancy ~ newlife$Schooling, xlab = "Schooling", ylab = "life expectancy")
-plot(newlife$Life.expectancy ~ newlife$Alcohol, xlab = "Alcohol", ylab = "life expectancy")
-plot(newlife$Life.expectancy ~ newlife$Hepatitis.B, xlab = "Hepatits Rate", ylab = "life expectancy")
-plot(newlife$Life.expectancy ~ newlife$Total.expenditure, xlab = "Expenditure", ylab = "life expectancy")
-plot(newlife$Life.expectancy ~ newlife$Income.composition.of.resources, xlab = "income", ylab = "life expectancy")
-plot(newlife$Life.expectancy ~ newlife$Diphtheria, xlab = "Diphtheria", ylab = "life expectancy")
-plot(newlife$Life.expectancy ~ newlife$BMI, xlab = "BMI", ylab = "life expectancy")
-```
-
-```{r}
 trainlife<- life[1:floor(0.7*nrow(life)),]
-testlife <- lifeexpect[-(1:floor(0.7*nrow(life))),]
+testlife <- life[-(1:floor(0.7*nrow(life))),]
 
-mod2 <- lm()
-
-train_predict = predict.lm(mod2, trainlife)
-train_mse_predict = mean((train_predict - trainlife$Life.expectancy)^2)
-test_predict = predict.lm(mod2, testlife)
-test_mse_predict = mean((test_predict - testlife$Life.expectancy)^2)
-
-train_mse_predict
-test_mse_predict
-
+#scale data
 ```
 
