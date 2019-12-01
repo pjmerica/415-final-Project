@@ -28,6 +28,7 @@ names(newlife)[names(newlife) == "Income.composition.of.resources"] = "Resource_
 ```
 
 ```{r}
+par(mfrow=c(2,2))
 plot(newlife$Life_Expectancy ~ newlife$Status, xlab = "Status", ylab = "Life Expectancy")
 plot(newlife$Life_Expectancy ~ newlife$Adult_Mortality, xlab = "Adult Mortality", ylab = "Life Expectancy")
 plot(newlife$Life_Expectancy ~ newlife$Infant_Deaths, xlab = "Infant Deaths", ylab = "Life Expectancy")
