@@ -53,17 +53,39 @@ summary(lm(Life_Expectancy ~ Diphtheria, data = newlife))$r.squared
 summary(lm(Life_Expectancy ~ HIV.AIDS, data = newlife))$r.squared
 summary(lm(Life_Expectancy ~ Resource_Income, data = newlife))$r.squared
 summary(lm(Life_Expectancy ~ Schooling, data = newlife))$r.squared
+
+cor(newlife$Adult_Mortality, newlife$Life_Expectancy)
+cor(newlife$BMI, newlife$Life_Expectancy)
+cor(newlife$Polio, newlife$Life_Expectancy)
+cor(newlife$Diphtheria, newlife$Life_Expectancy)
+cor(newlife$HIV.AIDS, newlife$Life_Expectancy)
+cor(newlife$Resource_Income, newlife$Life_Expectancy)
+cor(newlife$Schooling, newlife$Life_Expectancy)
 ```
 
-When plotting all the predictors against life expectancy in a scatter plot, life expectancy seems to be most correlated with status of the country, adult mortality, BMI, polio immunization coverage (%), diphtheria,  HIV/AIDS, income composition of resources, and schooling. In most of the scatterplots, there appears to be a lot of outliers. However, this may be due to getting rid of the NA values in the data set in the data cleaning process. When looking at Pearson's r-squared for the relationship between these 8 predictors and life expectancy, the five most correlated features with life expectancy are adult mortality, BMI, HIV/AIDS, income composition of resources, and schooling.
+When plotting all the predictors against life expectancy in a scatter plot, life expectancy seems to be most correlated with status of the country, adult mortality, BMI, polio immunization coverage (%), diphtheria,  HIV/AIDS, income composition of resources, and schooling. In most of the scatterplots, there appears to be a lot of outliers. However, this may be due to getting rid of the NA values in the data set in the data cleaning process. When looking at the in sample r-squared and the correlation coefficients for the relationship between these 8 predictors and life expectancy, the five most strongly predictive features of life expectancy are adult mortality, BMI, HIV/AIDS, income composition of resources, and schooling with schooling being the top most predictive feature of life expectancy.
 
+# Linear Regression Method
 ```{r}
-mod1 = lm(Life_Expectancy ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling, data = newlife)
+trainlife = newlife[1:floor(0.7*nrow(newlife)),]
+testlife = newlife[-(1:floor(0.7*nrow(newlife))),]
+
+colMeans(newlife[-c(1,2,3)])
+apply(newlife[-c(1,2,3)], 2, sd)
+# The means and standard deviations of the design matrix vary significantly, therefore, it is imperative to standardize the data.
+
+mean_train = colMeans(trainlife[-c(1,2,3)])
+std_train = apply(trainlife[-c(1,2,3)], 2, sd)
+
+X_life_train = scale(trainlife[-c(1,2,3)], center = mean_train, scale = std_train)
+y_life_train = trainlife$Life_expectancy
+
+X_life_test = scale(testlife[-c(1,2,3)], center = mean_train, scale = std_train)
+y_life_test = testlife$Life_expectancy
+
+mod1 = lm(Life_Expectancy ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling, data = trainlife)
 summary(mod1)
 
-trainlife<- life[1:floor(0.7*nrow(life)),]
-testlife <- life[-(1:floor(0.7*nrow(life))),]
-
-#scale data
+# Training and Test Errors
 ```
 
