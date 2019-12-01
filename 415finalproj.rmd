@@ -11,7 +11,7 @@ output: html_document
 ```
 
 ```{r}
-life = read.csv("Life Expectancy Data.csv", stringsAsFactors = F)
+lifeexpect= read.csv("Life Expectancy Data.csv", stringsAsFactors = F)
 
 newlife = na.omit(lifeexpect)
 newlife = newlife[-c(12,19)]
