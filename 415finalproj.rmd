@@ -7,11 +7,11 @@ output: html_document
 
 # Libraries
 ```{r}
-
+library(corrplot)
 ```
 
 ```{r}
-lifeexpect= read.csv("Life Expectancy Data.csv", stringsAsFactors = F)
+lifeexpect = read.csv("Life Expectancy Data.csv", stringsAsFactors = F)
 
 newlife = na.omit(lifeexpect)
 newlife = newlife[-c(12,19)]
@@ -62,6 +62,12 @@ cor(newlife$Diphtheria, newlife$Life_Expectancy)
 cor(newlife$HIV.AIDS, newlife$Life_Expectancy)
 cor(newlife$Resource_Income, newlife$Life_Expectancy)
 cor(newlife$Schooling, newlife$Life_Expectancy)
+
+newlife.cor = cor(newlife[-c(1,2,3)])
+corrplot(newlife.cor)
+
+palette = colorRampPalette(c("green", "white", "red")) (20)
+heatmap(x = newlife.cor, col = palette, symm = TRUE)
 ```
 
 When plotting all the predictors against life expectancy in a scatter plot, life expectancy seems to be most correlated with status of the country, adult mortality, BMI, polio immunization coverage (%), diphtheria,  HIV/AIDS, income composition of resources, and schooling. In most of the scatterplots, there appears to be a lot of outliers. However, this may be due to getting rid of the NA values in the data set in the data cleaning process. When looking at the in sample r-squared and the correlation coefficients for the relationship between these 8 predictors and life expectancy, the five most strongly predictive features of life expectancy are adult mortality, BMI, HIV/AIDS, income composition of resources, and schooling with schooling being the top most predictive feature of life expectancy.
@@ -86,7 +92,18 @@ y_life_test = testlife$Life_expectancy
 
 mod1 = lm(Life_Expectancy ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling, data = trainlife)
 summary(mod1)
+plot(mod1)
+mod2 = lm(Life_Expectancy ~ . - Status - Year - Country, data = trainlife)
+summary(mod2)
 
 # Training and Test Errors
+train_predict = predict.lm(mod1, trainlife)
+train_mse = mean((train_predict - trainlife$Life_Expectancy)^2)
+
+test_predict = predict.lm(mod1, testlife)
+test_mse = mean((test_predict - testlife$Life_Expectancy)^2)
+
+cat("The training MSE for the model fit by OLS is", train_mse,".\n")
+cat("The test MSE for the model fit by OLS is", test_mse,".\n")
 ```
 
