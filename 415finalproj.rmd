@@ -6,7 +6,7 @@ output: html_document
 ---
 
 # Libraries
-```{r}
+```{r, message = False}
 library(corrplot)
 ```
 
