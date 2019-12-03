@@ -105,14 +105,16 @@ plot(mod1)
 # When looking at the diagnostic plots, the data appears to be fairly normal, therefore, the linear fit for the model is appropriate.
 ```
 
+#KNN
+
 #Lasso 
 ##Creating Matrices
 ```{r}
-trainmatrix = model.matrix(Life_Expectancy ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling, data = trainlife)[,-1]
+trainmatrix = model.matrix(Life_Expectancy ~ ., data = trainlife)[,-1]
 colm = colMeans(trainmatrix)
 colsd = sqrt(diag(var(trainmatrix)))
 trainmatrix = scale(trainmatrix, colm, colsd)
-testmatrix = model.matrix(Life_Expectancy ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling , data = testlife)[,-1]
+testmatrix = model.matrix(Life_Expectancy ~ ., data = testlife)[,-1]
 testmatrix = scale(testmatrix, colm, colsd)
 grid = 10^seq(10, -2, length=100)
 ```
