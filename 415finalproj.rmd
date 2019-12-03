@@ -22,9 +22,9 @@ library(pls)
 lifeexpect = read.csv("Life Expectancy Data.csv", stringsAsFactors = F)
 
 newlife = na.omit(lifeexpect)
-newlife = newlife[-c(1,12,19)] #Getting rid of variables with collinearity & countries
-newlife$Year = as.factor(newlife$Year)
-newlife$Status = as.factor(newlife$Status)
+newlife = newlife[-c(1,2,3,12,19)] #Getting rid of variables with collinearity & countries
+#newlife$Year = as.factor(newlife$Year)
+#newlife$Status = as.factor(newlife$Status)
 
 names(newlife)[names(newlife) == "Life.expectancy"] = "Life_Expectancy"
 names(newlife)[names(newlife) == "Adult.Mortality"] = "Adult_Mortality"
