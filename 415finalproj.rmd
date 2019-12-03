@@ -16,6 +16,8 @@ library(caret)
 library(boot)
 library(glmnet)
 library(pls)
+library(FNN)
+library(MASS)
 ```
 
 ```{r}
@@ -106,6 +108,42 @@ plot(mod1)
 ```
 
 #KNN
+```{r}
+filterdcols = c(2,8,17,16,12) #choosing variables we chose
+filteredTrain2 = trainlife[,filterdcols] #filtering
+filtertest2 = testlife[,filterdcols]
+
+colm = colMeans(filteredTrain2) #means of columns
+colsd = sqrt(diag(var(filteredTrain2))) #means of standard deviations
+scaledlifetrain = scale(filteredTrain2, center = colm, scale = colsd) #scaling
+scaledlifetest = scale(filtertest2, center = colm, scale = colsd)
+
+k_range = c(1,3,5,10,25,50,75,100, 125, 150, 175,200) #k range
+trainMSE1 = c() #creating null vector
+#Creating KNN for training
+for(i in 1:length(k_range)){
+knnTrain <- knn.reg(train = scaledlifetrain , y = trainlife$Life_Expectancy,
+test = scaledlifetrain , k = k_range[i])
+trainMSE1[i] <- mean((trainlife$Life_Expectancy - knnTrain$pred)^2)
+}
+
+testMSE2 = c()
+#KNN for testing
+for(i in 1:length(k_range)){
+knnTest <- knn.reg(train = scaledlifetrain, y = trainlife$Life_Expectancy,
+test = scaledlifetest , k = k_range[i])
+testMSE2[i] <- mean((trainlife$Life_Expectancy - knnTest$pred)^2)
+}
+plot(trainMSE1 ~ I(1/k_range), type = "b", lwd = 2, col = "blue",
+main = "Training and Test MSE for KNN", xlab = "1/K", ylab = "MSE", ylim = c(0,200),
+xlim= c(0,1) ) #plotting
+# Add the test MSE
+lines(testMSE2 ~ I(1/k_range), type = "b", lwd = 2, col = "red")
+#testMSE2
+legend("topleft", legend = c("Training KNN", "Test KNN"), cex = 0.75, col = c("blue", "red"), lwd =
+c(2, 2), pch = c(1, 1), lty = c(1, 1))
+
+```
 
 #Lasso 
 ##Creating Matrices
