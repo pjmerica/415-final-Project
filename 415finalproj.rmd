@@ -8,13 +8,21 @@ output: html_document
 # Libraries
 ```{r, message = False}
 library(corrplot)
+library(ISLR)
+library(tidyverse)
+library(leaps)
+library(SignifReg)
+library(caret)
+library(boot)
+library(glmnet)
+library(pls)
 ```
 
 ```{r}
 lifeexpect = read.csv("Life Expectancy Data.csv", stringsAsFactors = F)
 
 newlife = na.omit(lifeexpect)
-newlife = newlife[-c(12,19)] #Getting rid of variables with collinearity
+newlife = newlife[-c(1,12,19)] #Getting rid of variables with collinearity & countries
 newlife$Year = as.factor(newlife$Year)
 newlife$Status = as.factor(newlife$Status)
 
@@ -67,7 +75,6 @@ When plotting all the predictors against life expectancy in a scatter plot, life
 ```{r}
 trainlife = newlife[1:floor(0.7*nrow(newlife)),]
 testlife = newlife[-(1:floor(0.7*nrow(newlife))),]
-
 colMeans(newlife[-c(1,2,3)])
 apply(newlife[-c(1,2,3)], 2, sd)
 # The means and standard deviations of the design matrix vary significantly, therefore, it is imperative to standardize the data.
@@ -76,10 +83,10 @@ mean_train = colMeans(trainlife[-c(1,2,3)])
 std_train = apply(trainlife[-c(1,2,3)], 2, sd)
 
 X_life_train = scale(trainlife[-c(1,2,3)], center = mean_train, scale = std_train)
-y_life_train = trainlife$Life_expectancy
+y_life_train = trainlife$Life_Expectancy
 
 X_life_test = scale(testlife[-c(1,2,3)], center = mean_train, scale = std_train)
-y_life_test = testlife$Life_expectancy
+y_life_test = testlife$Life_Expectancy
 
 mod1 = lm(Life_Expectancy ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling, data = trainlife)
 summary(mod1)
@@ -98,4 +105,36 @@ plot(mod1)
 # When looking at the diagnostic plots, the data appears to be fairly normal, therefore, the linear fit for the model is appropriate.
 ```
 
+#Lasso 
+##Creating Matrices
+```{r}
+trainmatrix = model.matrix(Life_Expectancy ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling, data = trainlife)[,-1]
+colm = colMeans(trainmatrix)
+colsd = sqrt(diag(var(trainmatrix)))
+trainmatrix = scale(trainmatrix, colm, colsd)
+testmatrix = model.matrix(Life_Expectancy ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling , data = testlife)[,-1]
+testmatrix = scale(testmatrix, colm, colsd)
+grid = 10^seq(10, -2, length=100)
+```
 
+```{r}
+lasso.mod = glmnet(trainmatrix, trainlife$Life_Expectancy, alpha=1, lambda=grid)
+dim(coef(lasso.mod))
+plot(lasso.mod, xvar = "lambda", label = TRUE)
+cv.out = cv.glmnet(trainmatrix, trainlife$Life_Expectancy, alpha=1, lambda = grid)
+plot(cv.out)
+bestlam = cv.out$lambda.min
+mses = cv.out$cvm
+bestlam
+#cv.error #cross-validating error
+lasso.pred_train = predict(lasso.mod, s=bestlam, newx=trainmatrix)
+mean((lasso.pred_train- trainlife$Life_Expectancy)^2)
+```
+# test MSE
+```{r}
+lasso.pred_test = predict(lasso.mod, s=bestlam, newx=testmatrix)
+mean((lasso.pred_test- testlife$Life_Expectancy)^2)
+
+lassocoef = predict(lasso.mod, type = "coefficient", s = bestlam)
+lassocoef #printing out variables chosen by model
+```
