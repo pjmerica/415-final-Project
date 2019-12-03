@@ -18,6 +18,10 @@ library(glmnet)
 library(pls)
 library(FNN)
 library(MASS)
+library(randomForest)
+library(gbm)
+library(ggplot2)
+library(xgboost)
 ```
 
 ```{r}
@@ -93,6 +97,8 @@ y_life_test = testlife$Life_Expectancy
 mod1 = lm(Life_Expectancy ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling, data = trainlife)
 summary(mod1)
 
+mod2 = lm(Life_Expectancy ~ ., data = trainlife)
+summary(mod2)
 # Training and Test Errors
 train_predict = predict.lm(mod1, trainlife)
 train_mse = mean((train_predict - trainlife$Life_Expectancy)^2)
@@ -118,7 +124,7 @@ colsd = sqrt(diag(var(filteredTrain2))) #means of standard deviations
 scaledlifetrain = scale(filteredTrain2, center = colm, scale = colsd) #scaling
 scaledlifetest = scale(filtertest2, center = colm, scale = colsd)
 
-k_range = c(1,3,5,10,25,50,75,100, 125, 150, 175,200) #k range
+k_range = c(1,5,7,9,10,12,13,14,15,25,50) #k range
 trainMSE1 = c() #creating null vector
 #Creating KNN for training
 for(i in 1:length(k_range)){
@@ -132,10 +138,10 @@ testMSE2 = c()
 for(i in 1:length(k_range)){
 knnTest <- knn.reg(train = scaledlifetrain, y = trainlife$Life_Expectancy,
 test = scaledlifetest , k = k_range[i])
-testMSE2[i] <- mean((trainlife$Life_Expectancy - knnTest$pred)^2)
+testMSE2[i] <- mean((testlife$Life_Expectancy - knnTest$pred)^2)
 }
 plot(trainMSE1 ~ I(1/k_range), type = "b", lwd = 2, col = "blue",
-main = "Training and Test MSE for KNN", xlab = "1/K", ylab = "MSE", ylim = c(0,200),
+main = "Training and Test MSE for KNN", xlab = "1/K", ylab = "MSE", ylim = c(0,20),
 xlim= c(0,1) ) #plotting
 # Add the test MSE
 lines(testMSE2 ~ I(1/k_range), type = "b", lwd = 2, col = "red")
@@ -148,11 +154,12 @@ c(2, 2), pch = c(1, 1), lty = c(1, 1))
 #Lasso 
 ##Creating Matrices
 ```{r}
-trainmatrix = model.matrix(Life_Expectancy ~ ., data = trainlife)[,-1]
+set.seed(1)
+trainmatrix = model.matrix(Life_Expectancy ~ ., data = trainlife)[, -1]
 colm = colMeans(trainmatrix)
 colsd = sqrt(diag(var(trainmatrix)))
 trainmatrix = scale(trainmatrix, colm, colsd)
-testmatrix = model.matrix(Life_Expectancy ~ ., data = testlife)[,-1]
+testmatrix = model.matrix(Life_Expectancy ~ ., data = testlife)[, -1]
 testmatrix = scale(testmatrix, colm, colsd)
 grid = 10^seq(10, -2, length=100)
 ```
@@ -175,6 +182,32 @@ mean((lasso.pred_train- trainlife$Life_Expectancy)^2)
 lasso.pred_test = predict(lasso.mod, s=bestlam, newx=testmatrix)
 mean((lasso.pred_test- testlife$Life_Expectancy)^2)
 
-lassocoef = predict(lasso.mod, type = "coefficient", s = bestlam)
+lassocoef = predict(lasso.mod, type = "coefficients", s = bestlam)
 lassocoef #printing out variables chosen by model
+```
+
+# Random Forest 
+```{r}
+set.seed(1)
+rf.life = randomForest(Life_Expectancy ~ ., data = trainlife, importance = TRUE)
+yhat.rf = predict(rf.life, newdata = testlife)
+testMSE = mean((yhat.rf - testlife$Life_Expectancy)^2)
+importance(rf.life)
+boost.life = gbm(Life_Expectancy ~ ., data = trainlife, distribution = "gaussian", n.trees = 5000, interaction.depth = 4)
+summary(boost.life)
+varImpPlot(rf.life)
+bst <- xgboost(
+  data = data.matrix(subset(trainlife, select = -Life_Expectancy)),
+  label = trainlife$Life_Expectancy, 
+  objective = "reg:linear",
+  nrounds = 100, 
+  max_depth = 5, 
+  eta = 0.3,
+  verbose = 0  # suppress printing
+)
+vi_bst =  xgb.importance(model = bst)
+xgb.ggplot.importance(vi_bst)
+
+
+
 ```
