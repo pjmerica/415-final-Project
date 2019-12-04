@@ -219,11 +219,10 @@ plot(lasso.mod, xvar = "lambda", label = TRUE)
 cv.out = cv.glmnet(trainmatrix, trainlife$Life_Expectancy, alpha=1, lambda = grid)
 plot(cv.out)
 
-bestlam = cv.out$lambda.1se
+bestlamse = cv.out$lambda.1se
 mses = cv.out$cvm
 
 bestlam = cv.out$lambda.min
-mses = cv.out$cvm #pic rger
 
 bestlam
 #cv.error #cross-validating error
@@ -238,6 +237,15 @@ mean((lasso.pred_test- testlife$Life_Expectancy)^2)
 lassocoef = predict(lasso.mod, type = "coefficients", s = bestlam)
 lassocoef #printing out variables chosen by model
 ```
+#Now test MSE with larger SE
+```{r}
+lasso.pred_test = predict(lasso.mod, s=bestlamse, newx=testmatrix)
+mean((lasso.pred_test- testlife$Life_Expectancy)^2)
+
+lassocoef = predict(lasso.mod, type = "coefficients", s = bestlamse)
+lassocoef #printing out variables chosen by model
+```
+
 
 # Random Forest 
 ```{r}
