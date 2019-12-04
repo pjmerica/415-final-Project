@@ -22,6 +22,7 @@ library(randomForest)
 library(gbm)
 library(ggplot2)
 library(xgboost)
+library(Ckmeans.1d.dp)
 ```
 
 ```{r}
@@ -170,8 +171,13 @@ dim(coef(lasso.mod))
 plot(lasso.mod, xvar = "lambda", label = TRUE)
 cv.out = cv.glmnet(trainmatrix, trainlife$Life_Expectancy, alpha=1, lambda = grid)
 plot(cv.out)
+<<<<<<< HEAD
 bestlam = cv.out$lambda.1se
 mses = cv.out$cvm
+=======
+bestlam = cv.out$lambda.min
+mses = cv.out$cvm #pic rger
+>>>>>>> 2dbedd1955cf186fcda09a24d0a811d312b8373d
 bestlam
 #cv.error #cross-validating error
 lasso.pred_train = predict(lasso.mod, s=bestlam, newx=trainmatrix)
