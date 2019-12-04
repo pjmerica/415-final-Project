@@ -105,16 +105,15 @@ plot(mod1)
 # When looking at the diagnostic plots, the data appears to be fairly normal, therefore, the linear fit for the model is appropriate.
 ```
 
-#KNN
+#KNN: UnFiltered
 ```{r}
-filterdcols = c(2,8,17,16,12) #choosing variables we chose
-filteredTrain2 = trainlife[,filterdcols] #filtering
-filtertest2 = testlife[,filterdcols]
+filteredTrain = trainlife 
+filtertest = testlife
 
-colm = colMeans(filteredTrain2) #means of columns
-colsd = sqrt(diag(var(filteredTrain2))) #means of standard deviations
-scaledlifetrain = scale(filteredTrain2, center = colm, scale = colsd) #scaling
-scaledlifetest = scale(filtertest2, center = colm, scale = colsd)
+colm = colMeans(filteredTrain) #means of columns
+colsd = sqrt(diag(var(filteredTrain))) #means of standard deviations
+scaledlifetrain = scale(filteredTrain, center = colm, scale = colsd) #scaling
+scaledlifetest = scale(filtertest, center = colm, scale = colsd)
 
 k_range = c(1,5,7,9,10,12,13,14,15,25,50) #k range
 trainMSE1 = c() #creating null vector
@@ -125,14 +124,61 @@ test = scaledlifetrain , k = k_range[i])
 trainMSE1[i] <- mean((trainlife$Life_Expectancy - knnTrain$pred)^2)
 }
 
-testMSE2 = c()
+testMSE1 = c()
 #KNN for testing
 for(i in 1:length(k_range)){
 knnTest <- knn.reg(train = scaledlifetrain, y = trainlife$Life_Expectancy,
 test = scaledlifetest , k = k_range[i])
-testMSE2[i] <- mean((testlife$Life_Expectancy - knnTest$pred)^2)
+testMSE1[i] <- mean((testlife$Life_Expectancy - knnTest$pred)^2)
 }
 plot(trainMSE1 ~ I(1/k_range), type = "b", lwd = 2, col = "blue",
+main = "Training and Test MSE for KNN", xlab = "1/K", ylab = "MSE", ylim = c(0,20),
+xlim= c(0,1) ) #plotting
+# Add the test MSE
+lines(testMSE1 ~ I(1/k_range), type = "b", lwd = 2, col = "red")
+#testMSE2
+legend("topleft", legend = c("Training KNN", "Test KNN"), cex = 0.75, col = c("blue", "red"), lwd =
+c(2, 2), pch = c(1, 1), lty = c(1, 1))
+```
+```{r}
+kmin_train = k_range[which.min(trainMSE1)] #best k for training
+kmin_test = k_range[which.min(testMSE1)] #best k for testing
+kmin_train
+
+kmin_test
+knn_pred_test = knn.reg(train = scaledlifetrain, y = trainlife$Life_Expectancy,
+test = scaledlifetest , k = 10)
+mean((testlife$Life_Expectancy - knn_pred_test$pred)^2) #KNN MSE
+```
+
+#KNN: Filtered
+```{r}
+filterdcols = c(2,8,17,16,12) #choosing variables we chose
+filteredTrain2 = trainlife[,filterdcols] #filtering
+filtertest2 = testlife[,filterdcols]
+
+colm = colMeans(filteredTrain2) #means of columns
+colsd = sqrt(diag(var(filteredTrain2))) #means of standard deviations
+scaledlifetrain2 = scale(filteredTrain2, center = colm, scale = colsd) #scaling
+scaledlifetest2 = scale(filtertest2, center = colm, scale = colsd)
+
+k_range = c(1,5,7,9,10,12,13,14,15,25,50) #k range
+trainMSE2 = c() #creating null vector
+#Creating KNN for training
+for(i in 1:length(k_range)){
+knnTrain <- knn.reg(train = scaledlifetrain2 , y = trainlife$Life_Expectancy,
+test = scaledlifetrain2 , k = k_range[i])
+trainMSE2[i] <- mean((trainlife$Life_Expectancy - knnTrain$pred)^2)
+}
+
+testMSE2 = c()
+#KNN for testing
+for(i in 1:length(k_range)){
+knnTest <- knn.reg(train = scaledlifetrain2, y = trainlife$Life_Expectancy,
+test = scaledlifetest2 , k = k_range[i])
+testMSE2[i] <- mean((testlife$Life_Expectancy - knnTest$pred)^2)
+}
+plot(trainMSE2 ~ I(1/k_range), type = "b", lwd = 2, col = "blue",
 main = "Training and Test MSE for KNN", xlab = "1/K", ylab = "MSE", ylim = c(0,20),
 xlim= c(0,1) ) #plotting
 # Add the test MSE
@@ -141,6 +187,16 @@ lines(testMSE2 ~ I(1/k_range), type = "b", lwd = 2, col = "red")
 legend("topleft", legend = c("Training KNN", "Test KNN"), cex = 0.75, col = c("blue", "red"), lwd =
 c(2, 2), pch = c(1, 1), lty = c(1, 1))
 
+```
+```{r}
+kmin_train = k_range[which.min(trainMSE2)] #best k for training
+kmin_test = k_range[which.min(testMSE2)] #best k for testing
+kmin_train
+
+kmin_test
+knn_pred_test2 = knn.reg(train = scaledlifetrain2, y = trainlife$Life_Expectancy,
+test = scaledlifetest2 , k = 25)
+mean((testlife$Life_Expectancy - knn_pred_test2$pred)^2) #KNN MSE testing
 ```
 
 #Lasso 
