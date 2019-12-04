@@ -6,7 +6,7 @@ output: html_document
 ---
 
 # Libraries
-```{r, message = False}
+```{r, message = True}
 library(corrplot)
 library(ISLR)
 library(tidyverse)
@@ -43,21 +43,13 @@ names(newlife)[names(newlife) == "Income.composition.of.resources"] = "Resource_
 ```
 
 ```{r}
-par(mfrow=c(2,2))
+par(mfrow=c(3,3))
 plot(newlife$Life_Expectancy ~ newlife$Adult_Mortality, xlab = "Adult Mortality", ylab = "Life Expectancy")
-plot(newlife$Life_Expectancy ~ newlife$Infant_Deaths, xlab = "Infant Deaths", ylab = "Life Expectancy")
-plot(newlife$Life_Expectancy ~ newlife$Alcohol, xlab = "Alcohol", ylab = "Life Expectancy")
 plot(newlife$Life_Expectancy ~ newlife$Percentage_Expenditure, xlab = "Percentage Expenditure", ylab = "Life Expectancy")
-plot(newlife$Life_Expectancy ~ newlife$HepatitisB, xlab = "Hepatitis B", ylab = "Life Expectancy")
-plot(newlife$Life_Expectancy ~ newlife$Measles, xlab = "Measles", ylab = "Life Expectancy")
 plot(newlife$Life_Expectancy ~ newlife$BMI, xlab = "BMI", ylab = "Life Expectancy")
 plot(newlife$Life_Expectancy ~ newlife$Polio, xlab = "Polio", ylab = "Life Expectancy")
 plot(newlife$Life_Expectancy ~ newlife$Total_Expenditure, xlab = "Total Expenditure", ylab = "Life Expectancy")
-plot(newlife$Life_Expectancy ~ newlife$Diphtheria, xlab = "Diphtheria", ylab = "Life Expectancy")
 plot(newlife$Life_Expectancy ~ newlife$HIV.AIDS, xlab = "HIV/AIDS", ylab = "Life Expectancy")
-plot(newlife$Life_Expectancy ~ newlife$GDP, xlab = "GDP", ylab = "Life Expectancy")
-plot(newlife$Life_Expectancy ~ newlife$Population, xlab = "Population", ylab = "Life Expectancy")
-plot(newlife$Life_Expectancy ~ newlife$thinness.5.9.years, xlab = "Thinness 5-9 years", ylab = "Life Expectancy")
 plot(newlife$Life_Expectancy ~ newlife$Resource_Income, xlab = "Income Composition of Resources", ylab = "Life Expectancy")
 plot(newlife$Life_Expectancy ~ newlife$Schooling, xlab = "Schooling", ylab = "Life Expectancy")
 
@@ -70,7 +62,6 @@ cor(newlife$Resource_Income, newlife$Life_Expectancy)
 cor(newlife$Schooling, newlife$Life_Expectancy)
 
 newlife.cor = cor(newlife[-c(1,2,3)])
-corrplot(newlife.cor)
 
 palette = colorRampPalette(c("green", "white", "red")) (20)
 heatmap(x = newlife.cor, col = palette, symm = TRUE)
@@ -171,13 +162,13 @@ dim(coef(lasso.mod))
 plot(lasso.mod, xvar = "lambda", label = TRUE)
 cv.out = cv.glmnet(trainmatrix, trainlife$Life_Expectancy, alpha=1, lambda = grid)
 plot(cv.out)
-<<<<<<< HEAD
+
 bestlam = cv.out$lambda.1se
 mses = cv.out$cvm
-=======
+
 bestlam = cv.out$lambda.min
 mses = cv.out$cvm #pic rger
->>>>>>> 2dbedd1955cf186fcda09a24d0a811d312b8373d
+
 bestlam
 #cv.error #cross-validating error
 lasso.pred_train = predict(lasso.mod, s=bestlam, newx=trainmatrix)
