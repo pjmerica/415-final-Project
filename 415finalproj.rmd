@@ -2,11 +2,13 @@
 title: "415finalproject"
 author: "Paul Merica"
 date: "November 17, 2019"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 # Libraries
-```{r, message = True}
+```{r, message = F}
 library(corrplot)
 library(ISLR)
 library(tidyverse)
