@@ -239,7 +239,7 @@ mean((lasso.pred_test- testlife$Life_Expectancy)^2)
 lassocoef = predict(lasso.mod, type = "coefficients", s = bestlam)
 lassocoef #printing out variables chosen by model
 ```
-#Now test MSE with larger SE
+#Now test MSE with larger lambda
 ```{r}
 lasso.pred_test = predict(lasso.mod, s=bestlamse, newx=testmatrix)
 mean((lasso.pred_test- testlife$Life_Expectancy)^2)
