@@ -170,7 +170,7 @@ dim(coef(lasso.mod))
 plot(lasso.mod, xvar = "lambda", label = TRUE)
 cv.out = cv.glmnet(trainmatrix, trainlife$Life_Expectancy, alpha=1, lambda = grid)
 plot(cv.out)
-bestlam = cv.out$lambda.min
+bestlam = cv.out$lambda.1se
 mses = cv.out$cvm
 bestlam
 #cv.error #cross-validating error
@@ -192,22 +192,23 @@ set.seed(1)
 rf.life = randomForest(Life_Expectancy ~ ., data = trainlife, importance = TRUE)
 yhat.rf = predict(rf.life, newdata = testlife)
 testMSE = mean((yhat.rf - testlife$Life_Expectancy)^2)
-importance(rf.life)
-boost.life = gbm(Life_Expectancy ~ ., data = trainlife, distribution = "gaussian", n.trees = 5000, interaction.depth = 4)
-summary(boost.life)
-varImpPlot(rf.life)
-bst <- xgboost(
-  data = data.matrix(subset(trainlife, select = -Life_Expectancy)),
-  label = trainlife$Life_Expectancy, 
-  objective = "reg:linear",
-  nrounds = 100, 
-  max_depth = 5, 
-  eta = 0.3,
-  verbose = 0  # suppress printing
-)
-vi_bst =  xgb.importance(model = bst)
-xgb.ggplot.importance(vi_bst)
+testMSE
 
+gbm.fit.final <- gbm(
+  formula = Life_Expectancy ~ .,
+  distribution = "gaussian",
+  data = trainlife,
+  n.trees = 5000,
+  interaction.depth = 4,
+  n.cores = NULL, # will use all cores by default
+  verbose = FALSE
+  )  
 
-
+par(mar = c(5, 11, 1, 1))
+summary(
+  gbm.fit.final, 
+  cBars = 10,
+  method = relative.influence, # also can use permutation.test.gbm
+  las = 2
+  )
 ```
