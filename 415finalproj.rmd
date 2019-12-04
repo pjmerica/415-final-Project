@@ -216,7 +216,6 @@ grid = 10^seq(10, -2, length=100)
 
 ```{r}
 lasso.mod = glmnet(trainmatrix, trainlife$Life_Expectancy, alpha=1, lambda=grid)
-dim(coef(lasso.mod))
 plot(lasso.mod, xvar = "lambda", label = TRUE)
 cv.out = cv.glmnet(trainmatrix, trainlife$Life_Expectancy, alpha=1, lambda = grid)
 plot(cv.out)
@@ -227,6 +226,7 @@ mses = cv.out$cvm
 bestlam = cv.out$lambda.min
 
 bestlam
+bestlamse
 #cv.error #cross-validating error
 lasso.pred_train = predict(lasso.mod, s=bestlam, newx=trainmatrix)
 mean((lasso.pred_train- trainlife$Life_Expectancy)^2)
