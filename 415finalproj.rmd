@@ -117,7 +117,7 @@ colsd = sqrt(diag(var(filteredTrain))) #means of standard deviations
 scaledlifetrain = scale(filteredTrain, center = colm, scale = colsd) #scaling
 scaledlifetest = scale(filtertest, center = colm, scale = colsd)
 
-k_range = c(1,5,7,9,10,12,13,14,15,25,50) #k range
+k_range = c(1,4,7,10,13,16,19,22,25,28,31,34,40) #k range
 trainMSE1 = c() #creating null vector
 #Creating KNN for training
 for(i in 1:length(k_range)){
@@ -133,11 +133,11 @@ knnTest <- knn.reg(train = scaledlifetrain, y = trainlife$Life_Expectancy,
 test = scaledlifetest , k = k_range[i])
 testMSE1[i] <- mean((testlife$Life_Expectancy - knnTest$pred)^2)
 }
-plot(trainMSE1 ~ I(1/k_range), type = "b", lwd = 2, col = "blue",
-main = "Training and Test MSE for KNN", xlab = "1/K", ylab = "MSE", ylim = c(0,20),
-xlim= c(0,1) ) #plotting
+plot(trainMSE1 ~ k_range, type = "b", lwd = 2, col = "blue",
+main = "Training and Test MSE for KNN", xlab = "K", ylab = "MSE", ylim = c(0,20),
+xlim= c(0,40) ) #plotting
 # Add the test MSE
-lines(testMSE1 ~ I(1/k_range), type = "b", lwd = 2, col = "red")
+lines(testMSE1 ~ k_range, type = "b", lwd = 2, col = "red")
 #testMSE2
 legend("topleft", legend = c("Training KNN", "Test KNN"), cex = 0.75, col = c("blue", "red"), lwd =
 c(2, 2), pch = c(1, 1), lty = c(1, 1))
@@ -164,7 +164,7 @@ colsd = sqrt(diag(var(filteredTrain2))) #means of standard deviations
 scaledlifetrain2 = scale(filteredTrain2, center = colm, scale = colsd) #scaling
 scaledlifetest2 = scale(filtertest2, center = colm, scale = colsd)
 
-k_range = c(1,5,7,9,10,12,13,14,15,25,50) #k range
+k_range = c(1,4,7,10,13,16,19,22,25,28,31,34,40) #k range
 trainMSE2 = c() #creating null vector
 #Creating KNN for training
 for(i in 1:length(k_range)){
@@ -180,11 +180,11 @@ knnTest <- knn.reg(train = scaledlifetrain2, y = trainlife$Life_Expectancy,
 test = scaledlifetest2 , k = k_range[i])
 testMSE2[i] <- mean((testlife$Life_Expectancy - knnTest$pred)^2)
 }
-plot(trainMSE2 ~ I(1/k_range), type = "b", lwd = 2, col = "blue",
-main = "Training and Test MSE for KNN", xlab = "1/K", ylab = "MSE", ylim = c(0,20),
-xlim= c(0,1) ) #plotting
+plot(trainMSE2 ~ k_range, type = "b", lwd = 2, col = "blue",
+main = "Training and Test MSE for KNN", xlab = "K", ylab = "MSE", ylim = c(0,20),
+xlim= c(0,40) ) #plotting
 # Add the test MSE
-lines(testMSE2 ~ I(1/k_range), type = "b", lwd = 2, col = "red")
+lines(testMSE2 ~ k_range, type = "b", lwd = 2, col = "red")
 #testMSE2
 legend("topleft", legend = c("Training KNN", "Test KNN"), cex = 0.75, col = c("blue", "red"), lwd =
 c(2, 2), pch = c(1, 1), lty = c(1, 1))
@@ -241,8 +241,11 @@ lassocoef #printing out variables chosen by model
 ```
 #Now test MSE with larger lambda
 ```{r}
-lasso.pred_test = predict(lasso.mod, s=bestlamse, newx=testmatrix)
-mean((lasso.pred_test- testlife$Life_Expectancy)^2)
+lasso.pred_train2 = predict(lasso.mod, s=bestlamse, newx=trainmatrix)
+mean((lasso.pred_train2 - trainlife$Life_Expectancy)^2)
+
+lasso.pred_test2 = predict(lasso.mod, s=bestlamse, newx=testmatrix)
+mean((lasso.pred_test2- testlife$Life_Expectancy)^2)
 
 lassocoef = predict(lasso.mod, type = "coefficients", s = bestlamse)
 lassocoef #printing out variables chosen by model
