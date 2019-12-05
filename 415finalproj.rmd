@@ -70,7 +70,7 @@ newlife.cor = cor(newlife[-c(1,2,3)])
 
 palette = colorRampPalette(c("green", "white", "red")) (20)
 heatmap(x = newlife.cor, col = palette, symm = TRUE)
-ggcorrplot(newlife.cor,, lab =T, lab_size = 2.2)
+ggcorrplot(newlife.cor, lab =T, lab_size = 2.2)
 ```
 
 When plotting all the predictors against life expectancy in a scatter plot, life expectancy seems to be most correlated with status of the country, adult mortality, alcohol, BMI, diphtheria,  HIV/AIDS, income composition of resources, and schooling. In most of the scatterplots, there appears to be a lot of outliers. However, this may be due to getting rid of the NA values in the data set in the data cleaning process. When looking at the correlation coefficients for the relationship between these 8 predictors and life expectancy, the five most strongly predictive features of life expectancy are adult mortality, BMI, HIV/AIDS, income composition of resources, and schooling with schooling being the top most predictive feature of life expectancy.
