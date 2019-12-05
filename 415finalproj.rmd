@@ -114,21 +114,21 @@ summary(Select.p.bwd)
 # Exponential
 ```{r}
 expmod <- lm(log(Life_Expectancy) ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling, data = trainlife)
-summary(expmod)
 expmod2 <- lm(log(Life_Expectancy) ~ Adult_Mortality + Infant_Deaths + Alcohol + Percentage_Expenditure + BMI + Total_Expenditure + Diphtheria + HIV.AIDS + Resource_Income + Schooling, data = trainlife)
+summary(expmod)
 summary(expmod2)
-
+newcol = log(trainlife$Life_Expectancy)
 train_exppredict = predict.lm(expmod, trainlife)
-train_mseexp = mean((train_exppredict - trainlife$Life_Expectancy)^2)
+train_mseexp = mean((exp(train_exppredict) - trainlife$Life_Expectancy)^2)
 train_mseexp
 test_exppredict = predict.lm(expmod, testlife)
-test_mseexp = mean((test_exppredict - testlife$Life_Expectancy)^2)
+test_mseexp = mean((exp(test_exppredict) - testlife$Life_Expectancy)^2)
 test_mseexp
 train_exppredict2 = predict.lm(expmod2, trainlife)
-train_mseexp2 = mean((train_exppredict2 - trainlife$Life_Expectancy)^2)
+train_mseexp2 = mean((exp(train_exppredict2) - trainlife$Life_Expectancy)^2)
 train_mseexp2
 test_exppredict2 = predict.lm(expmod2, testlife)
-test_mseexp2 = mean((test_exppredict2 - testlife$Life_Expectancy)^2)
+test_mseexp2 = mean((exp(test_exppredict2) - testlife$Life_Expectancy)^2)
 test_mseexp2 
 ```
 
