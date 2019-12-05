@@ -119,7 +119,7 @@ summary(expmod)
 summary(expmod2)
 newcol = log(trainlife$Life_Expectancy)
 train_exppredict = predict.lm(expmod, trainlife)
-train_mseexp = mean((exp(train_exppredict) - trainlife$Life_Expectancy)^2)
+train_mseexp = mean((exp(train_exppredict) - trainlife$Life_Expectancy)^2) #exponeniating to get MSE consistent with other methods
 train_mseexp
 test_exppredict = predict.lm(expmod, testlife)
 test_mseexp = mean((exp(test_exppredict) - testlife$Life_Expectancy)^2)
