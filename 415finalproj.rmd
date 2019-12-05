@@ -29,7 +29,9 @@ library(Ckmeans.1d.dp)
 
 ```{r}
 lifeexpect = read.csv("Life Expectancy Data.csv", stringsAsFactors = F)
-
+nastuff = na.omit(lifeexpect, invert = T) #only rows with NA values
+#going to make sure we didn't omit only poor countries
+nastuff %>% group_by(Status) %>% summarize(n = n()) %>% mutate(perc = n/sum(n))
 newlife = na.omit(lifeexpect)
 newlife = newlife[-c(1,2,3,12,19)] #Getting rid of variables with collinearity & countries
 #newlife$Year = as.factor(newlife$Year)
@@ -115,6 +117,19 @@ expmod <- lm(log(Life_Expectancy) ~ Adult_Mortality + BMI + HIV.AIDS + Resource_
 summary(expmod)
 expmod2 <- lm(log(Life_Expectancy) ~ Adult_Mortality + Infant_Deaths + Alcohol + Percentage_Expenditure + BMI + Total_Expenditure + Diphtheria + HIV.AIDS + Resource_Income + Schooling, data = trainlife)
 summary(expmod2)
+
+train_exppredict = predict.lm(expmod, trainlife)
+train_mseexp = mean((train_exppredict - trainlife$Life_Expectancy)^2)
+train_mseexp
+test_exppredict = predict.lm(expmod, testlife)
+test_mseexp = mean((test_exppredict - testlife$Life_Expectancy)^2)
+test_mseexp
+train_exppredict2 = predict.lm(expmod2, trainlife)
+train_mseexp2 = mean((train_exppredict2 - trainlife$Life_Expectancy)^2)
+train_mseexp2
+test_exppredict2 = predict.lm(expmod2, testlife)
+test_mseexp2 = mean((test_exppredict2 - testlife$Life_Expectancy)^2)
+test_mseexp2 
 ```
 
 #KNN: UnFiltered
@@ -252,7 +267,7 @@ lassocoef #printing out variables chosen by model
 
 
 lasso.pred_test = predict(lasso.mod, s=bestlamse, newx=testmatrix)
-mean((lasso.pred_test- testlife$Life_Expectancy)^2)
+mean((lasso.pred_test- testlife$Life_Expectancy)^2) #with better lambda
 
 lassocoef = predict(lasso.mod, type = "coefficients", s = bestlamse)
 lassocoef #printing out variables chosen by model
