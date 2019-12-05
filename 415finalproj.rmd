@@ -3,8 +3,8 @@ title: "415finalproject"
 author: "Paul Merica"
 date: "November 17, 2019"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 # Libraries
@@ -105,19 +105,31 @@ cat("The test MSE for the model fit by OLS is", test_mse,".\n")
 
 plot(mod1)
 # When looking at the diagnostic plots, the data appears to be fairly normal, therefore, the linear fit for the model is appropriate.
+
+Select.p.bwd =SignifReg(lm(Life_Expectancy~., data = trainlife), alpha = 0.05, direction = "backward",criterion = "AIC", correction = "None", trace = F)
+summary(Select.p.bwd)
+```
+# Exponential
+```{r}
+expmod <- lm(log(Life_Expectancy) ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling, data = trainlife)
+summary(expmod)
+expmod2 <- lm(log(Life_Expectancy) ~ Adult_Mortality + Infant_Deaths + Alcohol + Percentage_Expenditure + BMI + Total_Expenditure + Diphtheria + HIV.AIDS + Resource_Income + Schooling, data = trainlife)
+summary(expmod2)
 ```
 
 #KNN: UnFiltered
 ```{r}
-filteredTrain = trainlife 
-filtertest = testlife
+#Backward Selection
+filterdcols = c(2,3,4,5,8,10,11,12,16,17)
+filteredTrain = trainlife[,filterdcols]
+filtertest = testlife[,filterdcols]
 
 colm = colMeans(filteredTrain) #means of columns
 colsd = sqrt(diag(var(filteredTrain))) #means of standard deviations
 scaledlifetrain = scale(filteredTrain, center = colm, scale = colsd) #scaling
 scaledlifetest = scale(filtertest, center = colm, scale = colsd)
 
-k_range = c(1,4,7,10,13,16,19,22,25,28,31,34,40) #k range
+k_range = c(1,5,7,9,10,12,13,14,15,25,50) #k range
 trainMSE1 = c() #creating null vector
 #Creating KNN for training
 for(i in 1:length(k_range)){
@@ -133,11 +145,11 @@ knnTest <- knn.reg(train = scaledlifetrain, y = trainlife$Life_Expectancy,
 test = scaledlifetest , k = k_range[i])
 testMSE1[i] <- mean((testlife$Life_Expectancy - knnTest$pred)^2)
 }
-plot(trainMSE1 ~ k_range, type = "b", lwd = 2, col = "blue",
+plot(trainMSE1 ~ I(k_range), type = "b", lwd = 2, col = "blue",
 main = "Training and Test MSE for KNN", xlab = "K", ylab = "MSE", ylim = c(0,20),
-xlim= c(0,40) ) #plotting
+xlim= c(0,50) ) #plotting
 # Add the test MSE
-lines(testMSE1 ~ k_range, type = "b", lwd = 2, col = "red")
+lines(testMSE1 ~ I(k_range), type = "b", lwd = 2, col = "red")
 #testMSE2
 legend("topleft", legend = c("Training KNN", "Test KNN"), cex = 0.75, col = c("blue", "red"), lwd =
 c(2, 2), pch = c(1, 1), lty = c(1, 1))
@@ -149,10 +161,9 @@ kmin_train
 
 kmin_test
 knn_pred_test = knn.reg(train = scaledlifetrain, y = trainlife$Life_Expectancy,
-test = scaledlifetest , k = 10)
+test = scaledlifetest , k = 7)
 mean((testlife$Life_Expectancy - knn_pred_test$pred)^2) #KNN MSE
 ```
-
 #KNN: Filtered
 ```{r}
 filterdcols = c(2,8,17,16,12) #choosing variables we chose
@@ -164,7 +175,7 @@ colsd = sqrt(diag(var(filteredTrain2))) #means of standard deviations
 scaledlifetrain2 = scale(filteredTrain2, center = colm, scale = colsd) #scaling
 scaledlifetest2 = scale(filtertest2, center = colm, scale = colsd)
 
-k_range = c(1,4,7,10,13,16,19,22,25,28,31,34,40) #k range
+k_range = c(1,5,7,9,10,12,13,14,15,25,50) #k range
 trainMSE2 = c() #creating null vector
 #Creating KNN for training
 for(i in 1:length(k_range)){
@@ -180,16 +191,16 @@ knnTest <- knn.reg(train = scaledlifetrain2, y = trainlife$Life_Expectancy,
 test = scaledlifetest2 , k = k_range[i])
 testMSE2[i] <- mean((testlife$Life_Expectancy - knnTest$pred)^2)
 }
-plot(trainMSE2 ~ k_range, type = "b", lwd = 2, col = "blue",
+plot(trainMSE2 ~ I(k_range), type = "b", lwd = 2, col = "blue",
 main = "Training and Test MSE for KNN", xlab = "K", ylab = "MSE", ylim = c(0,20),
-xlim= c(0,40) ) #plotting
+xlim= c(0,50) ) #plotting
 # Add the test MSE
-lines(testMSE2 ~ k_range, type = "b", lwd = 2, col = "red")
+lines(testMSE2 ~ I(k_range), type = "b", lwd = 2, col = "red")
 #testMSE2
 legend("topleft", legend = c("Training KNN", "Test KNN"), cex = 0.75, col = c("blue", "red"), lwd =
 c(2, 2), pch = c(1, 1), lty = c(1, 1))
-
 ```
+
 ```{r}
 kmin_train = k_range[which.min(trainMSE2)] #best k for training
 kmin_test = k_range[which.min(testMSE2)] #best k for testing
@@ -216,6 +227,7 @@ grid = 10^seq(10, -2, length=100)
 
 ```{r}
 lasso.mod = glmnet(trainmatrix, trainlife$Life_Expectancy, alpha=1, lambda=grid)
+dim(coef(lasso.mod))
 plot(lasso.mod, xvar = "lambda", label = TRUE)
 cv.out = cv.glmnet(trainmatrix, trainlife$Life_Expectancy, alpha=1, lambda = grid)
 plot(cv.out)
@@ -226,7 +238,6 @@ mses = cv.out$cvm
 bestlam = cv.out$lambda.min
 
 bestlam
-bestlamse
 #cv.error #cross-validating error
 lasso.pred_train = predict(lasso.mod, s=bestlam, newx=trainmatrix)
 mean((lasso.pred_train- trainlife$Life_Expectancy)^2)
@@ -238,19 +249,14 @@ mean((lasso.pred_test- testlife$Life_Expectancy)^2)
 
 lassocoef = predict(lasso.mod, type = "coefficients", s = bestlam)
 lassocoef #printing out variables chosen by model
-```
-#Now test MSE with larger lambda
-```{r}
-lasso.pred_train2 = predict(lasso.mod, s=bestlamse, newx=trainmatrix)
-mean((lasso.pred_train2 - trainlife$Life_Expectancy)^2)
 
-lasso.pred_test2 = predict(lasso.mod, s=bestlamse, newx=testmatrix)
-mean((lasso.pred_test2- testlife$Life_Expectancy)^2)
+
+lasso.pred_test = predict(lasso.mod, s=bestlamse, newx=testmatrix)
+mean((lasso.pred_test- testlife$Life_Expectancy)^2)
 
 lassocoef = predict(lasso.mod, type = "coefficients", s = bestlamse)
 lassocoef #printing out variables chosen by model
 ```
-
 
 # Random Forest 
 ```{r}
