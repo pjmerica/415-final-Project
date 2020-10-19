@@ -1,0 +1,303 @@
+---
+title: "415finalproject"
+author: "Paul Merica"
+date: "November 17, 2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# Libraries
+```{r, message = F}
+library(ggcorrplot)
+library(corrplot)
+library(ISLR)
+library(tidyverse)
+library(leaps)
+library(SignifReg)
+library(caret)
+library(boot)
+library(glmnet)
+library(pls)
+library(FNN)
+library(MASS)
+library(randomForest)
+library(gbm)
+library(ggplot2)
+library(xgboost)
+library(Ckmeans.1d.dp)
+```
+
+```{r}
+lifeexpect = read.csv("Life Expectancy Data.csv", stringsAsFactors = F)
+nastuff = na.omit(lifeexpect, invert = T) #only rows with NA values
+#going to make sure we didn't omit only poor countries
+nastuff %>% group_by(Status) %>% summarize(n = n()) %>% mutate(perc = n/sum(n))
+newlife = na.omit(lifeexpect)
+newlife = newlife[-c(1,2,3,12,19)] #Getting rid of variables with collinearity & countries
+#newlife$Year = as.factor(newlife$Year)
+#newlife$Status = as.factor(newlife$Status)
+
+names(newlife)[names(newlife) == "Life.expectancy"] = "Life_Expectancy"
+names(newlife)[names(newlife) == "Adult.Mortality"] = "Adult_Mortality"
+names(newlife)[names(newlife) == "infant.deaths"] = "Infant_Deaths"
+names(newlife)[names(newlife) == "percentage.expenditure"] = "Percentage_Expenditure"
+names(newlife)[names(newlife) == "Hepatitis.B"] = "HepatitisB"
+names(newlife)[names(newlife) == "Total.expenditure"] = "Total_Expenditure"
+names(newlife)[names(newlife) == "Income.composition.of.resources"] = "Resource_Income"
+```
+
+```{r}
+par(mfrow=c(3,3))
+plot(newlife$Life_Expectancy ~ newlife$Adult_Mortality, xlab = "Adult Mortality", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Percentage_Expenditure, xlab = "Percentage Expenditure", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$BMI, xlab = "BMI", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Polio, xlab = "Polio", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Total_Expenditure, xlab = "Total Expenditure", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$HIV.AIDS, xlab = "HIV/AIDS", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Resource_Income, xlab = "Income Composition of Resources", ylab = "Life Expectancy")
+plot(newlife$Life_Expectancy ~ newlife$Schooling, xlab = "Schooling", ylab = "Life Expectancy")
+
+cor(newlife$Adult_Mortality, newlife$Life_Expectancy)
+cor(newlife$BMI, newlife$Life_Expectancy)
+cor(newlife$Alcohol, newlife$Life_Expectancy)
+cor(newlife$Diphtheria, newlife$Life_Expectancy)
+cor(newlife$HIV.AIDS, newlife$Life_Expectancy)
+cor(newlife$Resource_Income, newlife$Life_Expectancy)
+cor(newlife$Schooling, newlife$Life_Expectancy)
+
+newlife.cor = cor(newlife)
+
+palette = colorRampPalette(c("green", "white", "red")) (20)
+heatmap(x = newlife.cor, col = palette, symm = TRUE)
+ggcorrplot(newlife.cor, lab =F, lab_size = 2)
+```
+
+When plotting all the predictors against life expectancy in a scatter plot, life expectancy seems to be most correlated with status of the country, adult mortality, alcohol, BMI, diphtheria,  HIV/AIDS, income composition of resources, and schooling. In most of the scatterplots, there appears to be a lot of outliers. However, this may be due to getting rid of the NA values in the data set in the data cleaning process. When looking at the correlation coefficients for the relationship between these 8 predictors and life expectancy, the five most strongly predictive features of life expectancy are adult mortality, BMI, HIV/AIDS, income composition of resources, and schooling with schooling being the top most predictive feature of life expectancy.
+
+# Linear Regression Method
+```{r}
+trainlife = newlife[1:floor(0.7*nrow(newlife)),]
+testlife = newlife[-(1:floor(0.7*nrow(newlife))),]
+colMeans(newlife[-c(1,2,3)])
+apply(newlife[-c(1,2,3)], 2, sd)
+# The means and standard deviations of the design matrix vary significantly, therefore, it is imperative to standardize the data.
+
+mean_train = colMeans(trainlife[-c(1,2,3)])
+std_train = apply(trainlife[-c(1,2,3)], 2, sd)
+
+X_life_train = scale(trainlife[-c(1,2,3)], center = mean_train, scale = std_train)
+y_life_train = trainlife$Life_Expectancy
+
+X_life_test = scale(testlife[-c(1,2,3)], center = mean_train, scale = std_train)
+y_life_test = testlife$Life_Expectancy
+
+mod1 = lm(Life_Expectancy ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling, data = trainlife)
+summary(mod1)
+
+mod2 = lm(Life_Expectancy ~ ., data = trainlife)
+summary(mod2)
+# Training and Test Errors
+train_predict = predict.lm(mod1, trainlife)
+train_mse = mean((train_predict - trainlife$Life_Expectancy)^2)
+
+test_predict = predict.lm(mod1, testlife)
+test_mse = mean((test_predict - testlife$Life_Expectancy)^2)
+
+cat("The training MSE for the model fit by OLS is", train_mse,".\n")
+cat("The test MSE for the model fit by OLS is", test_mse,".\n")
+
+plot(mod1)
+# When looking at the diagnostic plots, the data appears to be fairly normal, therefore, the linear fit for the model is appropriate.
+
+Select.p.bwd =SignifReg(lm(Life_Expectancy~., data = trainlife), alpha = 0.05, direction = "backward",criterion = "AIC", correction = "None", trace = F)
+summary(Select.p.bwd)
+```
+# Exponential
+```{r}
+expmod <- lm(log(Life_Expectancy) ~ Adult_Mortality + BMI + HIV.AIDS + Resource_Income + Schooling, data = trainlife)
+expmod2 <- lm(log(Life_Expectancy) ~ Adult_Mortality + Infant_Deaths + Alcohol + Percentage_Expenditure + BMI + Total_Expenditure + Diphtheria + HIV.AIDS + Resource_Income + Schooling, data = trainlife)
+summary(expmod)
+summary(expmod2)
+newcol = log(trainlife$Life_Expectancy)
+train_exppredict = predict.lm(expmod, trainlife)
+train_mseexp = mean((exp(train_exppredict) - trainlife$Life_Expectancy)^2) #exponeniating to get MSE consistent with other methods
+train_mseexp
+test_exppredict = predict.lm(expmod, testlife)
+test_mseexp = mean((exp(test_exppredict) - testlife$Life_Expectancy)^2)
+test_mseexp
+train_exppredict2 = predict.lm(expmod2, trainlife)
+train_mseexp2 = mean((exp(train_exppredict2) - trainlife$Life_Expectancy)^2)
+train_mseexp2
+test_exppredict2 = predict.lm(expmod2, testlife)
+test_mseexp2 = mean((exp(test_exppredict2) - testlife$Life_Expectancy)^2)
+test_mseexp2 
+```
+
+#KNN: UnFiltered
+```{r}
+#Backward Selection
+filterdcols = c(2,3,4,5,8,10,11,12,16,17)
+filteredTrain = trainlife[,filterdcols]
+filtertest = testlife[,filterdcols]
+
+colm = colMeans(filteredTrain) #means of columns
+colsd = sqrt(diag(var(filteredTrain))) #means of standard deviations
+scaledlifetrain = scale(filteredTrain, center = colm, scale = colsd) #scaling
+scaledlifetest = scale(filtertest, center = colm, scale = colsd)
+
+k_range = c(1,5,7,9,10,12,13,14,15,25,50) #k range
+trainMSE1 = c() #creating null vector
+#Creating KNN for training
+for(i in 1:length(k_range)){
+knnTrain <- knn.reg(train = scaledlifetrain , y = trainlife$Life_Expectancy,
+test = scaledlifetrain , k = k_range[i])
+trainMSE1[i] <- mean((trainlife$Life_Expectancy - knnTrain$pred)^2)
+}
+
+testMSE1 = c()
+#KNN for testing
+for(i in 1:length(k_range)){
+knnTest <- knn.reg(train = scaledlifetrain, y = trainlife$Life_Expectancy,
+test = scaledlifetest , k = k_range[i])
+testMSE1[i] <- mean((testlife$Life_Expectancy - knnTest$pred)^2)
+}
+plot(trainMSE1 ~ I(k_range), type = "b", lwd = 2, col = "blue",
+main = "Training and Test MSE for KNN", xlab = "K", ylab = "MSE", ylim = c(0,20),
+xlim= c(0,50) ) #plotting
+# Add the test MSE
+lines(testMSE1 ~ I(k_range), type = "b", lwd = 2, col = "red")
+#testMSE2
+legend("topleft", legend = c("Training KNN", "Test KNN"), cex = 0.75, col = c("blue", "red"), lwd =
+c(2, 2), pch = c(1, 1), lty = c(1, 1))
+```
+```{r}
+kmin_train = k_range[which.min(trainMSE1)] #best k for training
+kmin_test = k_range[which.min(testMSE1)] #best k for testing
+kmin_train
+
+kmin_test
+knn_pred_test = knn.reg(train = scaledlifetrain, y = trainlife$Life_Expectancy,
+test = scaledlifetest , k = 7)
+mean((testlife$Life_Expectancy - knn_pred_test$pred)^2) #KNN MSE
+```
+#KNN: Filtered
+```{r}
+filterdcols = c(2,8,17,16,12) #choosing variables we chose
+filteredTrain2 = trainlife[,filterdcols] #filtering
+filtertest2 = testlife[,filterdcols]
+
+colm = colMeans(filteredTrain2) #means of columns
+colsd = sqrt(diag(var(filteredTrain2))) #means of standard deviations
+scaledlifetrain2 = scale(filteredTrain2, center = colm, scale = colsd) #scaling
+scaledlifetest2 = scale(filtertest2, center = colm, scale = colsd)
+
+k_range = c(1,5,7,9,10,12,13,14,15,25,50) #k range
+trainMSE2 = c() #creating null vector
+#Creating KNN for training
+for(i in 1:length(k_range)){
+knnTrain <- knn.reg(train = scaledlifetrain2 , y = trainlife$Life_Expectancy,
+test = scaledlifetrain2 , k = k_range[i])
+trainMSE2[i] <- mean((trainlife$Life_Expectancy - knnTrain$pred)^2)
+}
+
+testMSE2 = c()
+#KNN for testing
+for(i in 1:length(k_range)){
+knnTest <- knn.reg(train = scaledlifetrain2, y = trainlife$Life_Expectancy,
+test = scaledlifetest2 , k = k_range[i])
+testMSE2[i] <- mean((testlife$Life_Expectancy - knnTest$pred)^2)
+}
+plot(trainMSE2 ~ I(k_range), type = "b", lwd = 2, col = "blue",
+main = "Training and Test MSE for KNN", xlab = "K", ylab = "MSE", ylim = c(0,20),
+xlim= c(0,50) ) #plotting
+# Add the test MSE
+lines(testMSE2 ~ I(k_range), type = "b", lwd = 2, col = "red")
+#testMSE2
+legend("topleft", legend = c("Training KNN", "Test KNN"), cex = 0.75, col = c("blue", "red"), lwd =
+c(2, 2), pch = c(1, 1), lty = c(1, 1))
+```
+
+```{r}
+kmin_train = k_range[which.min(trainMSE2)] #best k for training
+kmin_test = k_range[which.min(testMSE2)] #best k for testing
+kmin_train
+
+kmin_test
+knn_pred_test2 = knn.reg(train = scaledlifetrain2, y = trainlife$Life_Expectancy,
+test = scaledlifetest2 , k = 25)
+mean((testlife$Life_Expectancy - knn_pred_test2$pred)^2) #KNN MSE testing
+```
+
+#Lasso 
+##Creating Matrices
+```{r}
+set.seed(1)
+trainmatrix = model.matrix(Life_Expectancy ~ ., data = trainlife)[, -1]
+colm = colMeans(trainmatrix)
+colsd = sqrt(diag(var(trainmatrix)))
+trainmatrix = scale(trainmatrix, colm, colsd)
+testmatrix = model.matrix(Life_Expectancy ~ ., data = testlife)[, -1]
+testmatrix = scale(testmatrix, colm, colsd)
+grid = 10^seq(10, -2, length=100)
+```
+
+```{r}
+lasso.mod = glmnet(trainmatrix, trainlife$Life_Expectancy, alpha=1, lambda=grid)
+dim(coef(lasso.mod))
+plot(lasso.mod, xvar = "lambda", label = TRUE)
+cv.out = cv.glmnet(trainmatrix, trainlife$Life_Expectancy, alpha=1, lambda = grid)
+plot(cv.out)
+
+bestlamse = cv.out$lambda.1se
+mses = cv.out$cvm
+
+bestlam = cv.out$lambda.min
+
+bestlam
+#cv.error #cross-validating error
+lasso.pred_train = predict(lasso.mod, s=bestlam, newx=trainmatrix)
+mean((lasso.pred_train- trainlife$Life_Expectancy)^2)
+```
+# test MSE
+```{r}
+lasso.pred_test = predict(lasso.mod, s=bestlam, newx=testmatrix)
+mean((lasso.pred_test- testlife$Life_Expectancy)^2)
+
+lassocoef = predict(lasso.mod, type = "coefficients", s = bestlam)
+lassocoef #printing out variables chosen by model
+
+
+lasso.pred_test = predict(lasso.mod, s=bestlamse, newx=testmatrix)
+mean((lasso.pred_test- testlife$Life_Expectancy)^2) #with better lambda
+
+lassocoef = predict(lasso.mod, type = "coefficients", s = bestlamse)
+lassocoef #printing out variables chosen by model
+```
+
+# Random Forest 
+```{r}
+set.seed(1)
+rf.life = randomForest(Life_Expectancy ~ ., data = trainlife, importance = TRUE)
+yhat.rf = predict(rf.life, newdata = testlife)
+testMSE = mean((yhat.rf - testlife$Life_Expectancy)^2)
+testMSE
+
+gbm.fit.final <- gbm(
+  formula = Life_Expectancy ~ .,
+  distribution = "gaussian",
+  data = trainlife,
+  n.trees = 5000,
+  interaction.depth = 4,
+  n.cores = NULL, # will use all cores by default
+  verbose = FALSE
+  )  
+
+par(mar = c(5, 11, 1, 1))
+summary(
+  gbm.fit.final, 
+  cBars = 10,
+  method = relative.influence, # also can use permutation.test.gbm
+  las = 2
+  )
+```
